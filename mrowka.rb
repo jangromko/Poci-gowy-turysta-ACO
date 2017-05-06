@@ -19,11 +19,10 @@ class Mrowka
     suma_atrakcyjnosci = 0
     if @odwiedzone.size < @rozmiar_grafu
       @obecny_wierzcholek.krawedzie.each do |krawedz|
-        atrakcyjnosc = krawedz.zapach/3.0
+        atrakcyjnosc = krawedz.zapach
         if @odwiedzone.include?(krawedz.cel)
-          atrakcyjnosc /= 3.0
+          atrakcyjnosc /= 5.0
         end
-        atrakcyjnosc += 1.0/krawedz.odleglosc
         suma_atrakcyjnosci += atrakcyjnosc
         kandydaci[krawedz] = atrakcyjnosc
       end
@@ -62,11 +61,10 @@ class Mrowka
     else
 
       @obecny_wierzcholek.krawedzie.each do |krawedz|
-        atrakcyjnosc = krawedz.zapach/3.0
+        atrakcyjnosc = krawedz.zapach
         if krawedz.cel == @start
           atrakcyjnosc *= 4.0
         end
-        atrakcyjnosc += 1.0/krawedz.odleglosc
         suma_atrakcyjnosci += atrakcyjnosc
         kandydaci[krawedz] = atrakcyjnosc
       end

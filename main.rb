@@ -85,7 +85,7 @@ puts Benchmark.measure {
 
 for x in 0..50
   mrowy = []
-  for i in 0..500
+  for i in 0..30
     mrowy[i] = Mrowka.new(w1, 5)
   end
 
@@ -93,13 +93,15 @@ for x in 0..50
     mrowa.wykonaj_pelna_trase
   end
 
+  graf.odparuj(0.1)
+
   mrowy.each do |mrowa|
     mrowa.trasa.each do |krawedz|
-      krawedz.dodaj_feromon(1.0/mrowa.koszt)
+      krawedz.dodaj_feromon(1.0/mrowa.koszt, 3)
     end
   end
 
-  graf.odparuj(0.05)
+
 end
 
 

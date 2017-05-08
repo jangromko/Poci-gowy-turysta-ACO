@@ -11,10 +11,18 @@ class Graf
 
   def utworz_z_jsona(rozklad)
     rozklad.each_key do |miasto|
+      if miasto == 'Olkusz'
+        next
+      end
+
       self.dodaj_wierzcholek(Wierzcholek.new(miasto))
     end
 
     rozklad.each_key do |miasto|
+      if miasto == 'Olkusz'
+        next
+      end
+
       w = @wierzcholki[miasto]
 
       rozklad[miasto].each_key do |stacja|

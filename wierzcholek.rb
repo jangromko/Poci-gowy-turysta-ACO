@@ -4,13 +4,17 @@ require 'set'
 class Wierzcholek
   def initialize(nazwa)
     @nazwa = nazwa
-    @krawedzie = []
+    @krawedzie = {}
     @sasiedzi = Set.new
   end
 
-  def dodaj_krawedz(czas, odjazd, przyjazd, stacja_poczatkowa, miasto_docelowe, stacja_docelowa, pociag, zapach=0.2)
-    @krawedzie.push(Krawedz.new(czas, odjazd, przyjazd, stacja_poczatkowa, miasto_docelowe, stacja_docelowa, pociag, zapach))
-    @sasiedzi.add(miasto_docelowe)
+  def dodaj_krawedz(miasto_docelowe, zapach=0.2)
+    if @krawedzie[miasto_docelowe.nazwa] == nil
+      @krawedzie[miasto_docelowe.nazwa] = Krawedz.new(miasto_docelowe, zapach)
+      @sasiedzi.add(miasto_docelowe)
+    end
+
+    @krawedzie[miasto_docelowe.nazwa]
   end
 
   def to_s

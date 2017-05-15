@@ -28,7 +28,9 @@ class Graf
       rozklad[miasto].each_key do |stacja|
         rozklad[miasto][stacja].each do |polaczenie|
           polaczenie['stacje'].each do |cel|
-            w.dodaj_krawedz(cel['czas'], polaczenie['odjazd'], cel['przyjazd'], stacja, @wierzcholki[cel['miastoDocelowe']], cel['stacjaDocelowa'], polaczenie['pociag'])
+            # w.dodaj_krawedz(cel['czas'], polaczenie['odjazd'], cel['przyjazd'], stacja, @wierzcholki[cel['miastoDocelowe']], cel['stacjaDocelowa'], polaczenie['pociag'])
+            krawedz = w.dodaj_krawedz(@wierzcholki[cel['miastoDocelowe']])
+            krawedz.dodaj_polaczenie(Polaczenie.new(cel['czas'], polaczenie['odjazd'], cel['przyjazd'], stacja, cel['stacjaDocelowa'], polaczenie['pociag'], @wierzcholki[cel['miastoDocelowe']]))
           end
         end
       end
@@ -41,10 +43,8 @@ class Graf
 
   def odparuj(wspolczynnik=0.2)
     @wierzcholki.each_key do |wierzcholek|
-      if wierzcholek != nil
-        @wierzcholki[wierzcholek].krawedzie.each do |krawedz|
-          krawedz.odparuj(wspolczynnik)
-        end
+      @wierzcholki[wierzcholek].krawedzie.each_key do |krawedz|
+        @wierzcholki[wierzcholek].krawedzie[krawedz].odparuj(wspolczynnik)
       end
     end
   end

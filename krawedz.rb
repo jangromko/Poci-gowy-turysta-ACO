@@ -1,17 +1,34 @@
+load 'polaczenie.rb'
+load 'funkcje.rb'
+
 class Krawedz
-  def initialize(czas, odjazd, przyjazd, stacja_poczatkowa, miasto_docelowe, stacja_docelowa, pociag, zapach=0.2)
-    @czas = czas
-    @odjazd = odjazd
-    @przyjazd = przyjazd
+  def initialize(miasto_docelowe, zapach=0.2)
     @miasto_docelowe = miasto_docelowe
-    @stacja_poczatkowa = stacja_poczatkowa
-    @stacja_docelowa = stacja_docelowa
-    @pociag = pociag
     @zapach = zapach
+    @polaczenia = []
+  end
+
+  def dodaj_polaczenie(polaczenie)
+    @polaczenia.push(polaczenie)
+  end
+
+  def najlepsze_polaczenie(obecny_czas)
+    najlepsze = nil
+    najlepszy_czas = 20000
+
+    @polaczenia.each do |polaczenie|
+      czas = wylicz_czas_polaczenia(obecny_czas, polaczenie.odjazd, polaczenie.czas)
+      if czas < najlepszy_czas
+        najlepsze = polaczenie
+        najlepszy_czas = czas
+      end
+    end
+
+    najlepsze
   end
 
   def to_s
-    'stacja początkowa: ' + @stacja_poczatkowa + ', miasto docelowe: ' + @miasto_docelowe.to_s + ', stacja docelowa: ' + @stacja_docelowa + ', odjazd: ' + @odjazd.to_s + ', przyjazd: ' + @przyjazd.to_s + ', czas: ' + @czas.to_s + ', pociąg: ' + @pociag + ', zapach: ' + @zapach.to_s
+    'miasto docelowe: ' + @miasto_docelowe.to_s + ', zapach: ' + @zapach.to_s
   end
 
   def odparuj(wspolczynnik)
@@ -22,5 +39,5 @@ class Krawedz
     @zapach += ilosc*wspolczynnik
   end
 
-  attr_reader :czas, :miasto_docelowe, :zapach, :odjazd, :przyjazd, :stacja_docelowa, :stacja_poczatkowa, :pociag
+  attr_reader :miasto_docelowe, :zapach, :polaczenia
 end

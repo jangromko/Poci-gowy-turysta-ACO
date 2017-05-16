@@ -57,7 +57,8 @@ class Mrowka
         atrakcyjnosc *= atrakcyjnosc_czekanie(ile_czekania(dodaj_do_czasu(@aktualny_czas, dodatek_na_przesiadke), polaczenie.odjazd))
 
         if @odwiedzone.include?(polaczenie.miasto_docelowe)
-          atrakcyjnosc /= 10000000.0
+          atrakcyjnosc /= 10**9
+        else
         end
 
         # atrakcyjnosc *= nieodwiedzeni_atrakcyjnosc(@sasiedzi_do_odwiedzenia[polaczenie.miasto_docelowe.nazwa])
@@ -66,10 +67,10 @@ class Mrowka
           atrakcyjnosc /= 1000.0
         end
 
+
         suma_atrakcyjnosci += atrakcyjnosc
         kandydaci[polaczenie] = atrakcyjnosc
       end
-
 
 
       wybor = @r.rand(0.0..suma_atrakcyjnosci)

@@ -44,7 +44,7 @@ mrowy = []
 
 
 for j in 0..20
-  for i in 0..20
+  for i in 0..40
     # mrowy[i] = Mrowka.new(graf.wierzcholki['1'], 100, graf)
     mrowy[i] = Mrowka.new(graf.wierzcholki['Warszawa'], 99, graf)
   end
@@ -79,19 +79,21 @@ for j in 0..20
   puts najlepszy_koszt
   puts '–––––––––––––––––––'
 
+
+
 #=begin
-  graf.odparuj(0.05)
+  graf.odparuj(0.25)
 
   mrowy.each do |mrowa|
     mrowa.trasa_ogolna.each do |krawedz|
-      # krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
-      krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 5)
+      krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
+      krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 15)
     end
   end
 
   najlepsza_trasa_ogolna.each do |krawedz|
     # krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
-    krawedz.dodaj_feromon(sigmoidalna_koszt(najlepszy_koszt), 10)
+    # krawedz.dodaj_feromon(sigmoidalna_koszt(najlepszy_koszt), 15)
   end
 
 #=end
@@ -118,3 +120,14 @@ for i in 0..mrowy.size - 1
   end
 end
 =end
+
+File.open('/home/jg/Pulpit/stan_grafu', "w") do |plik_wyj|
+  graf.wierzcholki.each_key do |miasto|
+    plik_wyj.puts miasto
+    graf.wierzcholki[miasto].krawedzie.each_key do |krawedz|
+      plik_wyj.puts graf.wierzcholki[miasto].krawedzie[krawedz]
+    end
+
+    plik_wyj.puts '–––––––––––––––––––––'
+  end
+end

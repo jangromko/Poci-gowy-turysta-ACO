@@ -1,7 +1,7 @@
 def sigmoidalna_koszt(x)
-  1-1/(1+Math.exp((-x+45000)*0.0005))
+  1-1/(1+Math.exp((-x+40000)*0.0005))
 
-  # 1000/x
+  #1000/x
 end
 
 def sigmoidalna_rozmiar(x)
@@ -9,15 +9,15 @@ def sigmoidalna_rozmiar(x)
 end
 
 def atrakcyjnosc_czekanie(x)
-  1-1/(1+Math.exp((-x+30)*0.007))+0.0001
+  1-1/(1+Math.exp((-x+30)*0.06))+1/(x+0.1)
 
-  # 1/(x+0.1)
+  #1/(x+0.1)
 end
 
 def atrakcyjnosc_czas_podrozy(x)
   1-1/(1+Math.exp((-x)*0.005))
 
-  # 1/(x+0.1)
+  1/(x+0.1)
 end
 
 def nieodwiedzeni_atrakcyjnosc(x)

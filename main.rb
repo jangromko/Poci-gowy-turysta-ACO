@@ -44,7 +44,7 @@ mrowy = []
 
 
 for j in 0..20
-  for i in 0..40
+  for i in 0..20
     # mrowy[i] = Mrowka.new(graf.wierzcholki['1'], 100, graf)
     mrowy[i] = Mrowka.new(graf.wierzcholki['Warszawa'], 99, graf)
   end
@@ -64,12 +64,20 @@ for j in 0..20
     if mrowa.koszt < najlepszy_koszt
       najlepszy_koszt = mrowa.koszt
       najlepsza_trasa = mrowa.trasa
-      najlepsza_trasa_ogolna = mrowa.trasa_ogolna
       kiedy_znaleziona = j
-    end
 
+
+    end
+    print mrowa.koszt
+    print ':'
+    print mrowa.trasa.trasa_szczegoly.size
+    print '+'
+    print mrowa.trasa.powrotna_trasa_szczegoly.size
+    print ' '
     suma += mrowa.koszt
   end
+
+  puts ''
 
   puts '–––––––––––––––––––'
   puts j
@@ -80,10 +88,9 @@ for j in 0..20
   puts '–––––––––––––––––––'
 
 
-
 #=begin
-  graf.odparuj(0.25)
-
+  graf.odparuj(0.05)
+=begin
   mrowy.each do |mrowa|
     mrowa.trasa_ogolna.each do |krawedz|
       krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
@@ -95,7 +102,20 @@ for j in 0..20
     # krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
     # krawedz.dodaj_feromon(sigmoidalna_koszt(najlepszy_koszt), 15)
   end
+=end
 
+
+  mrowy.each do |mrowa|
+    mrowa.trasa.trasa_ogolna do |krawedz|
+      krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.trasa_szczegoly.size), 0.01)
+      krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 2)
+    end
+  end
+
+  najlepsza_trasa.trasa_ogolna.each do |krawedz|
+    krawedz.dodaj_feromon(sigmoidalna_rozmiar(najlepsza_trasa.trasa_szczegoly.size), 0.01)
+    krawedz.dodaj_feromon(sigmoidalna_koszt(najlepszy_koszt), 2)
+  end
 #=end
 end
 
@@ -107,9 +127,11 @@ mrowy.each do |mrowa|
 end
 =end
 
-puts najlepsza_trasa
+puts najlepsza_trasa.trasa_szczegoly
+puts 'POWRÓT:'
+puts najlepsza_trasa.powrotna_trasa_szczegoly
 puts najlepszy_koszt
-puts najlepsza_trasa.size
+puts najlepsza_trasa.trasa_szczegoly.size.to_s + ' + ' + najlepsza_trasa.powrotna_trasa_szczegoly.size.to_s
 puts kiedy_znaleziona
 
 =begin
@@ -130,4 +152,18 @@ File.open('/home/jg/Pulpit/stan_grafu', "w") do |plik_wyj|
 
     plik_wyj.puts '–––––––––––––––––––––'
   end
+end
+
+wynik_json = []
+
+najlepsza_trasa.trasa_szczegoly.each do |t|
+  wynik_json.push t.to_map
+end
+
+najlepsza_trasa.powrotna_trasa_szczegoly.each do |t|
+  wynik_json.push t.to_map
+end
+
+File.open('/home/jg/Pulpit/wynik.json', "w") do |plik_wyj|
+  plik_wyj.puts wynik_json.to_json
 end

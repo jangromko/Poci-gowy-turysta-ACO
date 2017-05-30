@@ -1,10 +1,10 @@
 load 'polaczenie.rb'
-load 'funkcje.rb'
+
 
 class Krawedz
-  def initialize(miasto_docelowe, zapach=0.2)
+  def initialize(miasto_docelowe, zapach=0.5)
     @miasto_docelowe = miasto_docelowe
-    @zapach = zapach
+    @zapach = zapach + rand(0.0..0.03)
     @polaczenia = []
   end
 
@@ -37,6 +37,10 @@ class Krawedz
 
   def dodaj_feromon(ilosc, wspolczynnik=1)
     @zapach += ilosc*wspolczynnik
+  end
+
+  def to_map
+    {'miasto_docelowe' => @miasto_docelowe.nazwa, 'zapach' => @zapach}
   end
 
   attr_reader :miasto_docelowe, :zapach, :polaczenia

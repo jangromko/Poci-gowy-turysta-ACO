@@ -49,5 +49,10 @@ class Graf
     end
   end
 
+
+  def najlepsze_polaczenie(skad, dokad, czas_start)
+    @wierzcholki[skad].krawedzie[dokad].najlepsze_polaczenie(czas_start)
+  end
+
   attr_accessor :wierzcholki
 end

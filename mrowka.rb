@@ -1,10 +1,9 @@
-require 'parallel'
 require 'set'
 load 'trasa.rb'
 
 class Mrowka
 
-  def initialize(start, rozmiar_grafu, graf)
+  def initialize(start, rozmiar_grafu, graf, czas_zwiedzania, czas_start=rand(0..1439))
     @start = start
     # @trasa = []
     # @trasa_ogolna = []
@@ -16,17 +15,19 @@ class Mrowka
     @status = 0
     @koszt = 0
     @graf = graf
-    @aktualny_czas = rand(0..1439)
+    @aktualny_czas = czas_start
+    @trasa_ogolna = []
     # @aktualny_czas = 0
     @r = Random.new
     @trasa_bufor = Trasa.new
+    @czas_zwiedzania = czas_zwiedzania
 
 
     @wierzcholki = []
     @sasiedzi_do_odwiedzenia = {}
     graf.wierzcholki.each_key do |w|
       @wierzcholki.push(graf.wierzcholki[w])
-      @sasiedzi_do_odwiedzenia[w] = graf.wierzcholki[w].sasiedzi.size
+      #@sasiedzi_do_odwiedzenia[w] = graf.wierzcholki[w].sasiedzi.size
     end
   end
 
@@ -107,27 +108,93 @@ class Mrowka
           @aktualny_czas = dodaj_do_czasu(@aktualny_czas, dodatek_na_przesiadke)
           @obecny_wierzcholek = kandydat.miasto_docelowe
 
-          @wierzcholki.each do |w|
-            if w.sasiedzi.include? @obecny_wierzcholek and !(@odwiedzone.include? @obecny_wierzcholek)
-              @sasiedzi_do_odwiedzenia[w.nazwa] -= 1
-            end
-          end
+          #@wierzcholki.each do |w|
+          #  if w.sasiedzi.include? @obecny_wierzcholek and !(@odwiedzone.include? @obecny_wierzcholek)
+          #    @sasiedzi_do_odwiedzenia[w.nazwa] -= 1
+          #  end
+          #end
 
           @obecna_stacja = kandydat.stacja_docelowa
           # @trasa.push(kandydat)
           @koszt += kandydat.czas + ile_czekania(@aktualny_czas, kandydat.odjazd)
           @aktualny_czas = (@aktualny_czas + ile_czekania(@aktualny_czas, kandydat.odjazd) + kandydat.czas)%1440
           unless @odwiedzone.include? @obecny_wierzcholek
-            @koszt += 30
-            @aktualny_czas = (@aktualny_czas + 30)%1440
+            @koszt += @czas_zwiedzania
+            @aktualny_czas = (@aktualny_czas + @czas_zwiedzania)%1440
 
 
-            if @trasa_bufor.trasa_szczegoly.size == 1
+            if @trasa_bufor.trasa_szczegoly.size <= 1
               @trasa.dolacz_trase(@trasa_bufor)
               @trasa_bufor.wyczysc
             else
+              #@trasa.dolacz_trase(@trasa_bufor)
+              #@trasa_bufor.wyczysc
+
+              buf_start = @trasa.trasa_szczegoly.last.miasto_docelowe
+
+              for i in (@trasa_bufor.trasa_szczegoly.size-2).downto 0
+
+                if buf_start == @trasa_bufor.trasa_szczegoly[i].miasto_docelowe
+                  skrot = Trasa.new
+
+                  krawedz = @graf.wierzcholki[buf_start.nazwa].krawedzie[@trasa_bufor.trasa_szczegoly[i+1].miasto_docelowe.nazwa]
+                  skrot.dolacz_polaczenie(krawedz.najlepsze_polaczenie(@trasa.trasa_szczegoly.last.przyjazd+@czas_zwiedzania))
+
+
+                  for j in (i+2)..@trasa_bufor.trasa_szczegoly.size-1
+                    skrot.dolacz_polaczenie(@graf.najlepsze_polaczenie(skrot.trasa_szczegoly.last.miasto_docelowe.nazwa, @trasa_bufor.trasa_szczegoly[j].miasto_docelowe.nazwa, skrot.trasa_szczegoly.last.przyjazd+1))
+                  end
+
+                  @trasa_bufor = skrot
+
+                  break
+                end
+              end
+
+
+
+              for i in 0..@trasa_bufor.trasa_szczegoly.size-1
+                j = @trasa_bufor.trasa_szczegoly.size-1
+                while j >= i
+                  if @trasa_bufor.trasa_szczegoly[i].miasto_docelowe == @trasa_bufor.trasa_szczegoly[j].miasto_docelowe
+                    for k in 0..(j-i-1)
+                      @trasa_bufor.trasa_szczegoly.delete_at(i+1)
+                      j -= 1
+                    end
+                  end
+
+                  j -= 1
+                end
+              end
+
+              for i in 0..@trasa_bufor.trasa_szczegoly.size-1
+                j = @trasa_bufor.trasa_szczegoly.size-1
+                while j > i+1
+                  if @trasa_bufor.trasa_szczegoly[i].miasto_docelowe.sasiedzi.include? @trasa_bufor.trasa_szczegoly[j].miasto_docelowe
+                    #puts '–––'
+                    #puts @trasa_bufor.trasa_szczegoly
+                    #puts ''
+                    for k in 0..(j-i-2)
+                      @trasa_bufor.trasa_szczegoly.delete_at(i+1)
+                      j -= 1
+                    end
+
+                    @trasa_bufor.trasa_szczegoly[i+1] = @trasa_bufor.trasa_szczegoly[i].miasto_docelowe.krawedzie[@trasa_bufor.trasa_szczegoly[i+1].miasto_docelowe.nazwa].najlepsze_polaczenie(@trasa_bufor.trasa_szczegoly[i].przyjazd + 1)
+
+                    #puts @trasa_bufor.trasa_szczegoly
+                    #puts ''
+                  end
+
+                  j -= 1
+                end
+              end
+
+              @trasa_bufor.trasa_szczegoly[0] =
+
               @trasa.dolacz_trase(@trasa_bufor)
               @trasa_bufor.wyczysc
+
+
 =begin
               buf_start = @trasa.trasa_szczegoly.last.miasto_docelowe
               puts buf_start
@@ -143,7 +210,7 @@ class Mrowka
                   skrot = Trasa.new
 
                   krawedz = @graf.wierzcholki[buf_start.nazwa].krawedzie[@trasa_bufor.trasa_szczegoly[i+1].miasto_docelowe.nazwa]
-                  skrot.dolacz_polaczenie(krawedz.najlepsze_polaczenie(@trasa.trasa_szczegoly.last.przyjazd+30))
+                  skrot.dolacz_polaczenie(krawedz.najlepsze_polaczenie(@trasa.trasa_szczegoly.last.przyjazd+@czas_zwiedzania))
 
 
                   for j in (i+2)..@trasa_bufor.trasa_szczegoly.size-1
@@ -155,7 +222,7 @@ class Mrowka
                   break
                 end
 =end
-              end
+            end
 
 =begin
               puts '~~~~'
@@ -186,7 +253,7 @@ class Mrowka
               skrot = Trasa.new
               puts @trasa.trasa_szczegoly.last.miasto_docelowe.krawedzie[lista_miast[0].nazwa].nil?
               puts @trasa.trasa_szczegoly.last.miasto_docelowe.nazwa + '----' + lista_miast[0].nazwa
-              skrot.dolacz_polaczenie(@graf.najlepsze_polaczenie(@trasa.trasa_szczegoly.last.miasto_docelowe.nazwa, lista_miast[0].nazwa, @trasa.trasa_szczegoly.last.przyjazd+30))
+              skrot.dolacz_polaczenie(@graf.najlepsze_polaczenie(@trasa.trasa_szczegoly.last.miasto_docelowe.nazwa, lista_miast[0].nazwa, @trasa.trasa_szczegoly.last.przyjazd+@czas_zwiedzania))
 
 
 
@@ -221,17 +288,22 @@ class Mrowka
 
       @obecny_wierzcholek.krawedzie.each_key do |krawedz|
         # atrakcyjnosc = @obecny_wierzcholek.krawedzie[krawedz].zapach
+        polaczenie = @obecny_wierzcholek.krawedzie[krawedz].najlepsze_polaczenie(@aktualny_czas)
         atrakcyjnosc = 1.0
         if @obecny_wierzcholek.krawedzie[krawedz].miasto_docelowe == @start
           atrakcyjnosc *= 500.0
+        elsif @obecny_wierzcholek.krawedzie[krawedz].miasto_docelowe.sasiedzi.include? @start
+          atrakcyjnosc *= 200
         end
 
         if @obecny_wierzcholek.krawedzie[krawedz].miasto_docelowe == @obecny_wierzcholek
           atrakcyjnosc /= 100.0
         end
 
+        atrakcyjnosc *= atrakcyjnosc_czas_podrozy(polaczenie.czas)
+
         suma_atrakcyjnosci += atrakcyjnosc
-        kandydaci[@obecny_wierzcholek.krawedzie[krawedz].najlepsze_polaczenie(@aktualny_czas)] = atrakcyjnosc
+        kandydaci[polaczenie] = atrakcyjnosc
       end
 
 
@@ -285,20 +357,30 @@ class Mrowka
   def wykonaj_pelna_trase
     until @status == 1
       idz_dalej
+
+      if @trasa.trasa_szczegoly.size > 220
+        @trasa.wyczysc
+        @status = 2
+        break
+      end
       #puts @sasiedzi_do_odwiedzenia.to_s
     end
 
-    if @trasa_bufor.trasa_szczegoly.size == 1
-      @trasa.dolacz_trase(@trasa_bufor)
-      @trasa_bufor.wyczysc
-    else
-      @trasa.dolacz_trase(@trasa_bufor)
-      @trasa_bufor.wyczysc
-    end
+    if @status == 1
+      if @trasa_bufor.trasa_szczegoly.size == 1
+        @trasa.dolacz_trase(@trasa_bufor)
+        @trasa_bufor.wyczysc
+      else
+        @trasa.dolacz_trase(@trasa_bufor)
+        @trasa_bufor.wyczysc
+      end
 
-    @koszt = @trasa.wylicz_czas(@trasa.trasa_szczegoly[0].odjazd, 0, @trasa.trasa_szczegoly.size-1)
+      @koszt = @trasa.wylicz_czas_caly
+    else
+      @koszt = 1.0/0
+    end
   end
 
 
-  attr_reader :obecny_wierzcholek, :trasa, :odwiedzone, :koszt
+  attr_reader :obecny_wierzcholek, :trasa, :odwiedzone, :koszt, :status
 end

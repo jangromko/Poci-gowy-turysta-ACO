@@ -26,17 +26,27 @@ for i in 1..m-1
 end
 
 =end
-#=begin
-plik = IO.read('rozklad.json')
+czas_zwiedzania = 30
+miasto_startowe = "Warszawa"
+wybor_czasu = 'tak'
+
+sztywne_ustawienia = false
+
+if wybor_czasu == 'tak'
+  godzina = 12
+  minuta = 0
+  czas_start = godzina*60+minuta
+  sztywne_ustawienia = true
+end
+
+plik = IO.read('/home/jg/Pulpit/rozklad.json')
 rozklad = JSON.parse(plik)
 graf = Graf.new
 graf.utworz_z_jsona(rozklad)
-#=end
 
 
 najlepszy_koszt = 1.0/0
 najlepsza_trasa = nil
-najlepsza_trasa_ogolna = nil
 kiedy_znaleziona = 0
 
 
@@ -44,10 +54,17 @@ mrowy = []
 
 
 for j in 0..20
-  for i in 0..20
-    # mrowy[i] = Mrowka.new(graf.wierzcholki['1'], 100, graf)
-    mrowy[i] = Mrowka.new(graf.wierzcholki['Warszawa'], 99, graf)
+
+  if sztywne_ustawienia
+    for i in 0..20
+      mrowy[i] = Mrowka.new(graf.wierzcholki[miasto_startowe], 99, graf, czas_zwiedzania, czas_start)
+    end
+  else
+    for i in 0..20
+      mrowy[i] = Mrowka.new(graf.wierzcholki['Warszawa'], 99, graf, czas_zwiedzania)
+    end
   end
+
 
 
   mrowy.each do |mrowa|
@@ -56,59 +73,51 @@ for j in 0..20
 
 
   suma = 0
+  sukcesy = 0
   mrowy.each do |mrowa|
-    #puts mrowa.koszt
-    # puts mrowa.trasa.size
-    # puts mrowa.trasa
-    #puts '–––––––––––––––––––––'
-    if mrowa.koszt < najlepszy_koszt
-      najlepszy_koszt = mrowa.koszt
-      najlepsza_trasa = mrowa.trasa
-      kiedy_znaleziona = j
+    if mrowa.status == 1
+      sukcesy += 1
+      if mrowa.koszt < najlepszy_koszt
+        najlepszy_koszt = mrowa.koszt
+        najlepsza_trasa = mrowa.trasa
+        kiedy_znaleziona = j
 
-
+      end
+      print mrowa.koszt
+      print ':'
+      print mrowa.trasa.trasa_szczegoly.size
+      print '+'
+      print mrowa.trasa.powrotna_trasa_szczegoly.size
+      print ' '
+      suma += mrowa.koszt
     end
-    print mrowa.koszt
-    print ':'
-    print mrowa.trasa.trasa_szczegoly.size
-    print '+'
-    print mrowa.trasa.powrotna_trasa_szczegoly.size
-    print ' '
-    suma += mrowa.koszt
   end
 
-  puts ''
+  if sukcesy > 0
+    puts ''
 
-  puts '–––––––––––––––––––'
-  puts j
-  print 'ŚREDNIA: '
-  puts suma/mrowy.size
-  print 'NAJLEPSZY: '
-  puts najlepszy_koszt
-  puts '–––––––––––––––––––'
+    puts '–––––––––––––––––––'
+    puts j
+    print 'ŚREDNIA: '
+    puts suma/sukcesy
+    print 'NAJLEPSZY: '
+    puts najlepszy_koszt
+    puts '–––––––––––––––––––'
+  end
 
+  if najlepszy_koszt < czas_zwiedzania*99+27000
+    break
+  end
 
 #=begin
   graf.odparuj(0.05)
-=begin
-  mrowy.each do |mrowa|
-    mrowa.trasa_ogolna.each do |krawedz|
-      krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
-      krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 15)
-    end
-  end
-
-  najlepsza_trasa_ogolna.each do |krawedz|
-    # krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.size), 0.01)
-    # krawedz.dodaj_feromon(sigmoidalna_koszt(najlepszy_koszt), 15)
-  end
-=end
-
 
   mrowy.each do |mrowa|
-    mrowa.trasa.trasa_ogolna do |krawedz|
-      krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.trasa_szczegoly.size), 0.01)
-      krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 2)
+    if mrowa.status == 1
+      mrowa.trasa.trasa_ogolna do |krawedz|
+        krawedz.dodaj_feromon(sigmoidalna_rozmiar(mrowa.trasa.trasa_szczegoly.size), 0.01)
+        krawedz.dodaj_feromon(sigmoidalna_koszt(mrowa.koszt), 2)
+      end
     end
   end
 
@@ -119,13 +128,7 @@ for j in 0..20
 #=end
 end
 
-=begin
-mrowy.each do |mrowa|
-  puts mrowa.koszt
-  puts mrowa.trasa.size
-  puts '–––––––––––––––––––––'
-end
-=end
+
 
 puts najlepsza_trasa.trasa_szczegoly
 puts 'POWRÓT:'
@@ -133,26 +136,6 @@ puts najlepsza_trasa.powrotna_trasa_szczegoly
 puts najlepszy_koszt
 puts najlepsza_trasa.trasa_szczegoly.size.to_s + ' + ' + najlepsza_trasa.powrotna_trasa_szczegoly.size.to_s
 puts kiedy_znaleziona
-
-=begin
-for i in 0..mrowy.size - 1
-  File.open('/home/jg/Pulpit/Wyniki/' + i.to_s, "w") do |plik_wyj|
-    plik_wyj.puts mrowy[i].koszt
-    plik_wyj.puts mrowy[i].trasa
-  end
-end
-=end
-
-File.open('/home/jg/Pulpit/stan_grafu', "w") do |plik_wyj|
-  graf.wierzcholki.each_key do |miasto|
-    plik_wyj.puts miasto
-    graf.wierzcholki[miasto].krawedzie.each_key do |krawedz|
-      plik_wyj.puts graf.wierzcholki[miasto].krawedzie[krawedz]
-    end
-
-    plik_wyj.puts '–––––––––––––––––––––'
-  end
-end
 
 wynik_json = []
 
@@ -166,4 +149,8 @@ end
 
 File.open('/home/jg/Pulpit/wynik.json', "w") do |plik_wyj|
   plik_wyj.puts wynik_json.to_json
+end
+
+File.open('/home/jg/Pulpit/wynik_koszt', "w") do |plik_wyj|
+  plik_wyj.puts (najlepszy_koszt/1440).to_s + ' dni ' + ((najlepszy_koszt-(najlepszy_koszt/1440)*1440)/60).to_s + ' godzin(y) ' + ((najlepszy_koszt-(najlepszy_koszt/1440)*1440)%60).to_s + ' minut(y)'
 end

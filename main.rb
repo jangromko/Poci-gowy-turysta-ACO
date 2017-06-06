@@ -105,7 +105,7 @@ for j in 0..20
     puts '–––––––––––––––––––'
   end
 
-  if najlepszy_koszt < czas_zwiedzania*99+27000
+  if najlepszy_koszt < czas_zwiedzania*99+26000
     break
   end
 
